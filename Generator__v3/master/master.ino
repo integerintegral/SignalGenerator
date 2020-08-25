@@ -43,7 +43,7 @@ GButton pwr(POWER_BTN);
 
 uint8_t data[STORAGE_SIZE], index;
 uint16_t new_number;
-uint8_t code, parsingStage, buzz_steps, power_state;
+uint8_t code, parsingStage, buzz_steps;
 uint16_t fractpart, value;
 float fvalue;
 uint32_t parsingTimer, buzz_timer, send_timer;
@@ -95,10 +95,11 @@ void configure_slave() {
 }
 
 void power() {
-	for (uint8_t i = 0; i < SLAVE_AMOUNT; i++) power_state += I2C2.readByte(addresses[i], POWER_STATE);
-	(power_state > 0) ? turnOff() : turnOn();
+	uint8_t workingSlavesCount;
+	for (uint8_t i = 0; i < SLAVE_AMOUNT; i++) workingSlavesCount += I2C2.readByte(addresses[i], IS_WORKING_NOW);
+	(workingSlavesCount > 0) ? turnOff() : turnOn();
 	for (uint8_t i = 0; i < SLAVE_AMOUNT; i++) I2C2.writeByte(addresses[i], RX_FLAG, 1);
-	power_state = 0;
+	workingSlavesCount = 0;
 }
 
 void turnOn() {

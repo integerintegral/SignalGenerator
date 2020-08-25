@@ -47,5 +47,6 @@ void buzzTick() {
 			} 
 			else digitalWrite(BUZZ_PIN, HIGH);
 		}
-	}
+	} else 
+		digitalWrite(BUZZ_PIN, LOW);
 }

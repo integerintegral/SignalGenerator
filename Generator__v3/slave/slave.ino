@@ -98,6 +98,7 @@ void checkTimers() {
 		digitalWrite(INTERRUPT_PIN, 0);
 		digitalWrite(INTERRUPT_PIN, 1);
 		digitalWrite(INTERRUPT_PIN, 0);
+		generatorsTimer = millis();
 	}
 	
 	if (millis() - inputTimer >= 10) {
@@ -162,7 +163,7 @@ void turnOff() {
 	pwm1.disable();
 	pwm2.disable();
 	dataStorage[IS_WORKING_NOW] = 0;
-	power = 0;
+	power = false;
 }
 
 void turnOn() {

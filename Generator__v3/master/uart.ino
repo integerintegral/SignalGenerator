@@ -1,3 +1,4 @@
+
 void parsing() {
 	if (Serial.available() > 0) {
 		char incomingByte = Serial.read();
@@ -10,12 +11,14 @@ void parsing() {
 				isPowerButtonSingle = true;
 			} else if (incomingByte == 'T') {
 				isPowerButtonSingle = false;
-			} else if (incomingByte != ' ' && incomingByte != ';') {
-				new_number = (new_number * 10) + (incomingByte - '0');
 			} else {
-				data[index] = new_number;
-				new_number = 0;
-				index++;
+				if (incomingByte != ' ' && incomingByte != ';') {
+					new_number = (new_number * 10) + (incomingByte - '0');
+				} else {
+					data[index] = new_number;
+					new_number = 0;
+					index++;
+				}
 			}
 		}
 		if (incomingByte == '$') {
@@ -52,6 +55,7 @@ void sendUART() {
 			printSlaveString(isSettingUp, activeSlavesCount, addresses[i], c1, c2, a1, a2, a3, a4);
 		}
 		Serial.println("#");
+		send_timer = millis();
 	}
 }
 
