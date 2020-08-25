@@ -129,24 +129,50 @@ void checkTimers() {
 }
 
 void refresh() {
+	Serial.println("UPDATE SETTINGS");
 	float freq, mod;
 	freq = (float)(dataStorage[INT_GEN_FREQ_HIGHBYTE] << 8 | dataStorage[INT_GEN_FREQ_LOWBYTE]) + (dataStorage[FRACT_GEN_FREQ] * 0.1);
 	mod = (float)(dataStorage[INT_GEN_MODUL]) + (dataStorage[FRACT_GEN_MODUL] * 0.1);
 	generatorsTimeLimit = (long)((dataStorage[GENERATORS_TIME_HIGHBYTE] << 8) | dataStorage[GENERATORS_TIME_LOWBYTE]) * 1000;
 	
+	Serial.print("	Generator freq: ");
+	Serial.println(freq);
+	Serial.print("	Generator modulation: ");
+	Serial.println(mod);
+	Serial.print("	Generation time limit: ");
+	Serial.println(generatorsTimeLimit);
 	generator.setFreq(freq);
 	generator.setModulation(mod);
 
 	if (dataStorage[PWM2_MODE]) { // 1 - рандом, 0 - не рандом
 		upper_bound = ((dataStorage[PWM2_FREQ_HIGHBYTE] << 8) | dataStorage[PWM2_FREQ_LOWBYTE]) + 1;  
-		setPWM2Random(upper_bound);
+		setPWM2Random(upper_bound);	
+		Serial.print("	PWM2 mode: random. Boundary freq - ");
+		Serial.print(upper_bound);
+		Serial.print(", duty - ");
+		Serial.println(dataStorage[PWM2_DUTY])
 	} else {
-		pwm2.setFreq((dataStorage[PWM2_FREQ_HIGHBYTE] << 8) | dataStorage[PWM2_FREQ_LOWBYTE]);
+		uint8_t pwm2_freq = ((dataStorage[PWM2_FREQ_HIGHBYTE] << 8) | dataStorage[PWM2_FREQ_LOWBYTE]);  
+		pwm2.setFreq(pwm2_freq);
+		Serial.print("	PWM2 mode: specific. Freq - ");
+		Serial.print(pwm2_freq);	
+		Serial.print(", duty - ");
+		Serial.println(dataStorage[PWM2_DUTY])
 	}
 	
 	pwm1.setFreq(PWM1_FREQ);
 	pwm1.setDuty(PWM1_DUTY);
-
+	
+	Serial.print("	PWM1 settings from config.h: freq - ");
+	Serial.print(PWM1_FREQ);
+	Serial.print(", duty - ");
+	Serial.println(PWM1_DUTY);
+	
+	Serial.print("	Generator pins: ");
+	Serial.println(dataStorage[GEN_PINS], BIN);
+	Serial.print("	PWM2 pins");
+	Serial.println(dataStorage[PWM2_PINS], BIN);
+	
 	if (dataStorage[POWER_STATE] && !dataStorage[IS_WORKING_NOW]) turnOn();	
 }
 
@@ -159,6 +185,7 @@ void inputCounter2() {
 }
 
 void turnOff() {
+	Serial.println("Turning off")
 	generator.disable();
 	pwm1.disable();
 	pwm2.disable();
@@ -167,6 +194,7 @@ void turnOff() {
 }
 
 void turnOn() {
+	Serial.println("Turning on")
 	generatorsTimer = millis();
 	inputTimer = millis();
 	power = true;
