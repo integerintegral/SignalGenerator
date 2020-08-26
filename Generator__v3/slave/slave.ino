@@ -45,12 +45,11 @@ uint8_t dataStorage[STORAGE_SIZE]  = {
 bool power;
 volatile uint16_t counter1, counter2, analogInput1, analogInput2, analogInput3, analogInput4;
 uint16_t upper_bound;
-uint32_t generatorsTimer, inputTimer, generatorsTimeLimit, changefreq_timer;
-uint32_t voltage;
+uint32_t generatorsTimer, inputTimer, generatorsTimeLimit = 1000, changefreq_timer;
 
 impulseGenerator generator(FREQ_OUT1, FREQ_OUT2);
-PWM_1 pwm1(PWM2_OUT1, PWM2_OUT2, PWM1_OUT1_MODE, PWM1_OUT2_MODE);
-PWM_2 pwm2(PWM1_OUT1, PWM1_OUT2);
+PWM_1 pwm1(PWM1_OUT1, PWM1_OUT2);
+PWM_2 pwm2(PWM2_OUT1, PWM2_OUT2);
 
 
 iarduino_I2C_connect I2C2;
@@ -61,8 +60,13 @@ void setup() {
 	I2C2.begin(dataStorage);
 	pinMode(A1, INPUT);
 	pinMode(A0, INPUT);
-	pinMode(13, OUTPUT);
+	pinMode(A2, INPUT);
+	pinMode(A3, INPUT);
 	pinMode(INTERRUPT_PIN, OUTPUT);
+	digitalWrite(INTERRUPT_PIN, LOW);
+	attachInterrupt(0, inputCounter1, FRONT_1);
+	attachInterrupt(1, inputCounter2, FRONT_2);
+	randomSeed(analogRead(6));
 	Serial.print("My address: ");
 	Serial.println(MY_ADDRESS);
 }
@@ -71,7 +75,7 @@ void loop() {
 	if (dataStorage[RX_FLAG] == 1 && dataStorage[SLAVE_NUMBER] == MY_ADDRESS) {
 		if (power && dataStorage[POWER_STATE] == 0) {
 			turnOff();
-		} else if (!power) {
+		} else  /*if(!power) */{
 			refresh();
 		} 		
 		dataStorage[RX_FLAG] = 0;
@@ -89,15 +93,8 @@ void checkTimers() {
 		changefreq_timer = millis();
 	}
 
-	if (millis() - generatorsTimer >= generatorsTimeLimit) {
-		generator.disable();
-		pwm1.disable();
-		pwm2.disable();
-		power = false;
-		dataStorage[IS_WORKING_NOW] = false;
-		digitalWrite(INTERRUPT_PIN, 0);
-		digitalWrite(INTERRUPT_PIN, 1);
-		digitalWrite(INTERRUPT_PIN, 0);
+	if (millis() - generatorsTimer >= generatorsTimeLimit && power) {
+		turnOff();
 		generatorsTimer = millis();
 	}
 	
@@ -135,11 +132,11 @@ void refresh() {
 	mod = (float)(dataStorage[INT_GEN_MODUL]) + (dataStorage[FRACT_GEN_MODUL] * 0.1);
 	generatorsTimeLimit = (long)((dataStorage[GENERATORS_TIME_HIGHBYTE] << 8) | dataStorage[GENERATORS_TIME_LOWBYTE]) * 1000;
 	
-	Serial.print("	Generator freq: ");
+	Serial.print("1.	Generator freq: ");
 	Serial.println(freq);
-	Serial.print("	Generator modulation: ");
+	Serial.print("2.	Generator modulation: ");
 	Serial.println(mod);
-	Serial.print("	Generation time limit: ");
+	Serial.print("3.	Generation time limit: ");
 	Serial.println(generatorsTimeLimit);
 	generator.setFreq(freq);
 	generator.setModulation(mod);
@@ -147,32 +144,37 @@ void refresh() {
 	if (dataStorage[PWM2_MODE]) { // 1 - рандом, 0 - не рандом
 		upper_bound = ((dataStorage[PWM2_FREQ_HIGHBYTE] << 8) | dataStorage[PWM2_FREQ_LOWBYTE]) + 1;  
 		setPWM2Random(upper_bound);	
-		Serial.print("	PWM2 mode: random. Boundary freq - ");
+		Serial.print("4.	PWM2 mode: random. Boundary freq - ");
 		Serial.print(upper_bound);
 		Serial.print(", duty - ");
-		Serial.println(dataStorage[PWM2_DUTY])
+		Serial.println(dataStorage[PWM2_DUTY]);
 	} else {
 		uint8_t pwm2_freq = ((dataStorage[PWM2_FREQ_HIGHBYTE] << 8) | dataStorage[PWM2_FREQ_LOWBYTE]);  
 		pwm2.setFreq(pwm2_freq);
-		Serial.print("	PWM2 mode: specific. Freq - ");
+		pwm2.setDuty(dataStorage[PWM2_DUTY]);
+		Serial.print("4.	PWM2 mode: specific. Freq - ");
 		Serial.print(pwm2_freq);	
 		Serial.print(", duty - ");
-		Serial.println(dataStorage[PWM2_DUTY])
+		Serial.println(dataStorage[PWM2_DUTY]);
 	}
 	
 	pwm1.setFreq(PWM1_FREQ);
 	pwm1.setDuty(PWM1_DUTY);
-	
-	Serial.print("	PWM1 settings from config.h: freq - ");
+	pwm1.setOuts(PWM1_OUT1_MODE, PWM1_OUT2_MODE);
+	Serial.print("5.	PWM1 settings from config.h: freq - ");
 	Serial.print(PWM1_FREQ);
 	Serial.print(", duty - ");
 	Serial.println(PWM1_DUTY);
 	
-	Serial.print("	Generator pins: ");
+	Serial.print("6.	Generator pins: ");
 	Serial.println(dataStorage[GEN_PINS], BIN);
-	Serial.print("	PWM2 pins");
+	Serial.print("7.	PWM2 pins");
 	Serial.println(dataStorage[PWM2_PINS], BIN);
 	
+	Serial.print("8.	power state: ");
+	Serial.println(dataStorage[POWER_STATE]);
+	Serial.print("9. 	is working now: ");
+	Serial.println(dataStorage[IS_WORKING_NOW]);
 	if (dataStorage[POWER_STATE] && !dataStorage[IS_WORKING_NOW]) turnOn();	
 }
 
@@ -185,16 +187,25 @@ void inputCounter2() {
 }
 
 void turnOff() {
-	Serial.println("Turning off")
+	digitalWrite(INTERRUPT_PIN, 0);
+	digitalWrite(INTERRUPT_PIN, 1);
+	delay(15);
+	digitalWrite(INTERRUPT_PIN, 0);
+	Serial.println("Turning off");
 	generator.disable();
 	pwm1.disable();
 	pwm2.disable();
 	dataStorage[IS_WORKING_NOW] = 0;
 	power = false;
+	
+	Serial.print("1.	power state: ");
+	Serial.println(dataStorage[POWER_STATE]);
+	Serial.print("2. 	is working now: ");
+	Serial.println(dataStorage[IS_WORKING_NOW]);
 }
 
 void turnOn() {
-	Serial.println("Turning on")
+	Serial.println("Turning on");
 	generatorsTimer = millis();
 	inputTimer = millis();
 	power = true;
@@ -203,7 +214,7 @@ void turnOn() {
 	generator.setOuts(dataStorage[GEN_PINS]);
 	generator.enable();
 	
-	pwm1.setOuts(3);
+	pwm1.setOuts(PWM1_OUT1_MODE, PWM1_OUT2_MODE);
 	pwm1.enable();
 
 	pwm2.setOuts(dataStorage[PWM2_PINS]);
@@ -216,6 +227,6 @@ void setPWM2Freq(uint16_t freq) {
 }
 
 void setPWM2Random(uint16_t upper_bound) {
-	uint8_t rand_number = random(1, upper_bound);
+	uint16_t rand_number = random(1, upper_bound);
 	setPWM2Freq(rand_number);
 }

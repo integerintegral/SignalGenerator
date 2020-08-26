@@ -40,14 +40,15 @@
 #include <avr/interrupt.h>
 
 GButton pwr(POWER_BTN);
+GButton feedback(FEEDBACK_PIN);
 
 uint8_t data[STORAGE_SIZE], index;
 uint16_t new_number;
 uint8_t code, parsingStage, buzz_steps;
 uint16_t fractpart, value;
 float fvalue;
-uint32_t parsingTimer, buzz_timer, send_timer;
-bool startParsing, successful, allow_play, sig_type, _interrupt, first_start;
+uint32_t parsingTimer, send_timer;
+bool startParsing, successful, sig_type;
 bool isSettingUp;
 bool enableBuzzer = true, isPowerButtonSingle = true;
 
@@ -56,30 +57,28 @@ iarduino_I2C_connect I2C2;
 void setup() {	
 	Wire.begin();	
 	pinMode(BUZZ_PIN, OUTPUT);
-	attachInterrupt(0, interrupt, RISING);
 	Serial.begin(BAUD_RATE);
+	feedback.setDebounce(10);
+	feedback.setType(LOW_PULL); 
 }
 
 void loop() {
 	parsing();
 	sendUART();
-	buzzTick();
 	pwr.tick();	
-
+	feedback.tick();
+	buzzerTick();
 	if ((pwr.isSingle() && isPowerButtonSingle) || (pwr.isDouble() && !isPowerButtonSingle))
 		power();
 
-	if (_interrupt) {
-		uint8_t workingSlaves = getWorkingSlavesCount();
-		if (workingSlaves == 0)
-			playLong();
+	if (feedback.isClick()) 
+		if (getWorkingSlavesCount() == 2)
+			playLong();			
 		else
-			playShort();
-		_interrupt = 0;
-	}
+			playDoubleShort();
 }
 
-uint8_t getWorkingSlavesCount(){
+uint8_t getWorkingSlavesCount() {
 	uint8_t c;
 	for (uint8_t i = 0; i < SLAVE_AMOUNT; i++)
 		c += I2C2.readByte(addresses[i], IS_WORKING_NOW);
@@ -88,17 +87,17 @@ uint8_t getWorkingSlavesCount(){
 
 
 void configure_slave() {
-	I2C2.writeByte(data[SLAVE_NUMBER], RX_FLAG, 1);
-	I2C2.writeByte(data[SLAVE_NUMBER], SLAVE_NUMBER, data[SLAVE_NUMBER]);
 	for (uint8_t j = 2; j <= FRACT_GEN_MODUL; j++)
 		I2C2.writeByte(data[SLAVE_NUMBER], j, data[j]);	
+	I2C2.writeByte(data[SLAVE_NUMBER], RX_FLAG, 1);
+	I2C2.writeByte(data[SLAVE_NUMBER], SLAVE_NUMBER, data[SLAVE_NUMBER]);
 }
 
 void power() {
-	uint8_t workingSlavesCount;
-	for (uint8_t i = 0; i < SLAVE_AMOUNT; i++) workingSlavesCount += I2C2.readByte(addresses[i], IS_WORKING_NOW);
+	uint8_t workingSlavesCount = getWorkingSlavesCount();
 	(workingSlavesCount > 0) ? turnOff() : turnOn();
-	for (uint8_t i = 0; i < SLAVE_AMOUNT; i++) I2C2.writeByte(addresses[i], RX_FLAG, 1);
+	for (uint8_t i = 0; i < SLAVE_AMOUNT; i++)
+		I2C2.writeByte(addresses[i], RX_FLAG, 1);
 	workingSlavesCount = 0;
 }
 
@@ -110,8 +109,4 @@ void turnOn() {
 void turnOff() {
 	for (uint8_t i = 0; i < SLAVE_AMOUNT; i++) I2C2.writeByte(addresses[i], POWER_STATE, 0);
 	playLong();
-}
-
-void interrupt() {
-	_interrupt = 1;
 }

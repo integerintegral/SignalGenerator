@@ -2,23 +2,14 @@
 void parsing() {
 	if (Serial.available() > 0) {
 		char incomingByte = Serial.read();
+		Serial.print(incomingByte);
 		if (startParsing) {
-			if (incomingByte == 'E') {
-				enableBuzzer = true;
-			} else if (incomingByte == 'D') {
-				enableBuzzer = false;
-			} else if (incomingByte == 'S') {
-				isPowerButtonSingle = true;
-			} else if (incomingByte == 'T') {
-				isPowerButtonSingle = false;
+			if (incomingByte != ' ' && incomingByte != ';') {
+				new_number = (new_number * 10) + (incomingByte - '0');
 			} else {
-				if (incomingByte != ' ' && incomingByte != ';') {
-					new_number = (new_number * 10) + (incomingByte - '0');
-				} else {
-					data[index] = new_number;
-					new_number = 0;
-					index++;
-				}
+				data[index] = new_number;
+				new_number = 0;
+				index++;
 			}
 		}
 		if (incomingByte == '$') {
@@ -32,6 +23,18 @@ void parsing() {
 		}
 		if (incomingByte == '!')
 			power();
+		if (incomingByte == 'E')
+			enableBuzzer = true;
+		
+		if (incomingByte == 'D') 
+			enableBuzzer = false;
+		
+		if (incomingByte == 'S') 
+			isPowerButtonSingle = true;
+		
+		if (incomingByte == 'T')
+			isPowerButtonSingle = false;
+	
 	}
 	if (successful) {
 		configure_slave();
@@ -59,7 +62,7 @@ void sendUART() {
 	}
 }
 
-String printSlaveString(bool isu, uint8_t activeSlavesCount, uint8_t slaveNumber, uint16_t c1, uint16_t c2, uint16_t a1, uint16_t a2, uint16_t a3, uint16_t a4) {
+void printSlaveString(bool isu, uint8_t activeSlavesCount, uint8_t slaveNumber, uint16_t c1, uint16_t c2, uint16_t a1, uint16_t a2, uint16_t a3, uint16_t a4) {
 	if (!isu)	
 		Serial.print("E");
 	else if (isu && activeSlavesCount == 0)
