@@ -78,7 +78,7 @@ void PWM_1::setFreq(uint16_t freq) {
 }
 
 void PWM_1::setDuty(uint8_t duty) {
-	_on_p = _period * duty / 255;
+	_on_p = _period * duty / 100;
 	_off_p = _period - _on_p;
 }
 
