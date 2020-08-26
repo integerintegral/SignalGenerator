@@ -49,7 +49,6 @@ uint16_t fractpart, value;
 float fvalue;
 uint32_t parsingTimer, send_timer;
 bool startParsing, successful, sig_type;
-bool isSettingUp;
 bool enableBuzzer = true, isPowerButtonSingle = true;
 
 iarduino_I2C_connect I2C2;
@@ -72,7 +71,7 @@ void loop() {
 		power();
 
 	if (feedback.isClick()) 
-		if (getWorkingSlavesCount() == 2)
+		if (getWorkingSlavesCount() == 0)
 			playLong();			
 		else
 			playDoubleShort();
@@ -91,6 +90,7 @@ void configure_slave() {
 		I2C2.writeByte(data[SLAVE_NUMBER], j, data[j]);	
 	I2C2.writeByte(data[SLAVE_NUMBER], RX_FLAG, 1);
 	I2C2.writeByte(data[SLAVE_NUMBER], SLAVE_NUMBER, data[SLAVE_NUMBER]);
+	I2C2.writeByte(data[SLAVE_NUMBER], IS_SETTING_UP, 1);
 }
 
 void power() {

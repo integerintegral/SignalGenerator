@@ -2,7 +2,6 @@
 void parsing() {
 	if (Serial.available() > 0) {
 		char incomingByte = Serial.read();
-		Serial.print(incomingByte);
 		if (startParsing) {
 			if (incomingByte != ' ' && incomingByte != ';') {
 				new_number = (new_number * 10) + (incomingByte - '0');
@@ -42,13 +41,13 @@ void parsing() {
 	}
 }
 
-
 void sendUART() {
 	if (millis() - send_timer >= POOL_PERIOD){
 		Serial.print("$ "); 
 		Serial.println(ID);
 		uint8_t activeSlavesCount = getWorkingSlavesCount();
 		for (uint8_t i = 0; i < SLAVE_AMOUNT; i++){
+			bool isSettingUp = I2C2.readByte(addresses[i], IS_SETTING_UP);
 			uint16_t c1 = (I2C2.readByte(addresses[i], COUNTER_1_HIGHBYTE) << 8) | I2C2.readByte(addresses[i], COUNTER_1_LOWBYTE);
 			uint16_t c2 = (I2C2.readByte(addresses[i], COUNTER_2_HIGHBYTE) << 8) | I2C2.readByte(addresses[i], COUNTER_2_LOWBYTE);
 			uint16_t a1 = (I2C2.readByte(addresses[i], ANALOG_1_HIGHBYTE) << 8) | I2C2.readByte(addresses[i], ANALOG_1_LOWBYTE);
@@ -62,10 +61,16 @@ void sendUART() {
 	}
 }
 
-void printSlaveString(bool isu, uint8_t activeSlavesCount, uint8_t slaveNumber, uint16_t c1, uint16_t c2, uint16_t a1, uint16_t a2, uint16_t a3, uint16_t a4) {
-	if (!isu)	
+/* 
+	E - система не настроена
+	S - система настроена, выходы отключены
+	W - хотя бы один слейв активен
+*/
+
+void printSlaveString(bool isSettingUp, uint8_t activeSlavesCount, uint8_t slaveNumber, uint16_t c1, uint16_t c2, uint16_t a1, uint16_t a2, uint16_t a3, uint16_t a4) {
+	if (!isSettingUp)	
 		Serial.print("E");
-	else if (isu && activeSlavesCount == 0)
+	else if (isSettingUp && activeSlavesCount == 0)
 		Serial.print("S");
 	else 
 		Serial.print("W");

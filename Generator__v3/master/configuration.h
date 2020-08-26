@@ -22,7 +22,7 @@ uint8_t addresses[SLAVE_AMOUNT] = {
 #define SHORT_SIG_DUR 250
 
 #define ID				123456	// шестизначное число
-#define POOL_PERIOD 	5000 // Период опроса входов всех слейвов (мс)
+#define POOL_PERIOD 	500 // Период опроса входов всех слейвов (мс)
 
 
 
