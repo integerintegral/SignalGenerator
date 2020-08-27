@@ -3,9 +3,9 @@ uint32_t buzz_timer;
 bool buzzLong, buzzShort, buzzDoubleShort; 
 
 void buzzerTick(){
-	buzzShortTick();
-	buzzDoubleShortTick();
-	buzzLongTick();
+	if (buzzShort) buzzShortTick();
+	if (buzzDoubleShort) buzzDoubleShortTick();
+	if (buzzLong) buzzLongTick();
 }
 
 void playShort() {

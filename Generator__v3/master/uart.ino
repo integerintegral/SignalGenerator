@@ -20,8 +20,9 @@ void parsing() {
 			startParsing = false;
 			successful = true;
 		}
+		
 		if (incomingByte == '!')
-			power();
+			(isAnySlaveEnabled()) ? turnOff() : turnOn();	
 		if (incomingByte == 'E')
 			enableBuzzer = true;
 		

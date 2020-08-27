@@ -3,12 +3,12 @@
 #define CONFIG
 
 // Адреса периферийных устройств
-#define SLAVE_AMOUNT 1	// количество ведомых устройств
+#define SLAVE_AMOUNT 2	// количество ведомых устройств
 
 // адреса устройств
 
 uint8_t addresses[SLAVE_AMOUNT] = {
-	1
+	1, 2
 };
 // Настройки UART
 #define BAUD_RATE 38400	// скорость порта (бод)
@@ -22,7 +22,7 @@ uint8_t addresses[SLAVE_AMOUNT] = {
 #define SHORT_SIG_DUR 250
 
 #define ID				123456	// шестизначное число
-#define POOL_PERIOD 	500 // Период опроса входов всех слейвов (мс)
+#define POOL_PERIOD 	10000 // Период опроса входов всех слейвов (мс)
 
 
 

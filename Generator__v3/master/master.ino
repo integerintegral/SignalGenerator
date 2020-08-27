@@ -31,6 +31,8 @@
 	5,	// дробная часть частоты генерации				24
 	0	// дробная часть частоты модуляции				25
 */ 
+#define ON true
+#define OFF false
 
 #include "Wire.h"
 #include <iarduino_I2C_connect.h>
@@ -67,14 +69,25 @@ void loop() {
 	pwr.tick();	
 	feedback.tick();
 	buzzerTick();
-	if ((pwr.isSingle() && isPowerButtonSingle) || (pwr.isDouble() && !isPowerButtonSingle))
-		power();
 
-	if (feedback.isClick()) 
-		if (getWorkingSlavesCount() == 0)
+	if (isAnySlaveEnabled() && checkButtonWithButtonMode()) {
+		turnOff();
+	}
+	else if (!isAnySlaveEnabled() && pwr.isSingle()) {	
+		turnOn();
+	}
+
+	if (feedback.isClick()){
+		uint8_t workingSlavesCount = getWorkingSlavesCount();
+		if (workingSlavesCount == 0)
 			playLong();			
 		else
 			playDoubleShort();
+	}
+}
+
+bool checkButtonWithButtonMode(){
+	return (pwr.isSingle() && isPowerButtonSingle) || (pwr.isDouble() && !isPowerButtonSingle);
 }
 
 uint8_t getWorkingSlavesCount() {
@@ -84,7 +97,6 @@ uint8_t getWorkingSlavesCount() {
 	return c;
 }
 
-
 void configure_slave() {
 	for (uint8_t j = 2; j <= FRACT_GEN_MODUL; j++)
 		I2C2.writeByte(data[SLAVE_NUMBER], j, data[j]);	
@@ -93,20 +105,19 @@ void configure_slave() {
 	I2C2.writeByte(data[SLAVE_NUMBER], IS_SETTING_UP, 1);
 }
 
-void power() {
+bool isAnySlaveEnabled(){
 	uint8_t workingSlavesCount = getWorkingSlavesCount();
-	(workingSlavesCount > 0) ? turnOff() : turnOn();
-	for (uint8_t i = 0; i < SLAVE_AMOUNT; i++)
-		I2C2.writeByte(addresses[i], RX_FLAG, 1);
-	workingSlavesCount = 0;
+	return workingSlavesCount > 0;
 }
 
 void turnOn() {
-	for (uint8_t i = 0; i < SLAVE_AMOUNT; i++) I2C2.writeByte(addresses[i], POWER_STATE, 1);
+	for (uint8_t i = 0; i < SLAVE_AMOUNT; i++) I2C2.writeByte(addresses[i], POWER_STATE, ON);
+	for (uint8_t i = 0; i < SLAVE_AMOUNT; i++) I2C2.writeByte(addresses[i], RX_FLAG, 1);
 	playShort();
 }
 
 void turnOff() {
-	for (uint8_t i = 0; i < SLAVE_AMOUNT; i++) I2C2.writeByte(addresses[i], POWER_STATE, 0);
+	for (uint8_t i = 0; i < SLAVE_AMOUNT; i++) I2C2.writeByte(addresses[i], POWER_STATE, OFF);
+	for (uint8_t i = 0; i < SLAVE_AMOUNT; i++) I2C2.writeByte(addresses[i], RX_FLAG, 1);
 	playLong();
 }
