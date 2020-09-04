@@ -4,7 +4,7 @@
 
 // СЛЕЙВЫ 1-4
 
-#define MY_ADDRESS 2		// Адрес на шине I2C
+#define MY_ADDRESS 1		// Адрес на шине I2C
 
 // Выходы 
 #define FREQ_OUT1 	9	// Генератор 1.1 (9 либо 10)
@@ -39,4 +39,6 @@
 #define FRONT_2	RISING	// RISING - переход сигнала с низкого ЛУ в высокий
 							// FALLING - переход сигнала с высокого ЛУ в низкий
 							// CHANGE  - при любом изменении сигнала
+							
+#define DEBUG_INFO 1
 #endif

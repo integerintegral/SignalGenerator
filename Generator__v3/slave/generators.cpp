@@ -131,8 +131,6 @@ PWM_2::PWM_2(uint8_t pin1, uint8_t pin2) {
 	_pin2 = pin2;
 	pinMode(_pin1, OUTPUT);
 	pinMode(_pin2, OUTPUT);
-	Serial.println(pin1);
-	Serial.println(pin2);
 }
 
 void PWM_2::setFreq(uint16_t freq) {

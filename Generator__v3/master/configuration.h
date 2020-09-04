@@ -10,6 +10,10 @@
 uint8_t addresses[SLAVE_AMOUNT] = {
 	1, 2
 };
+
+uint8_t logicPins[8] = {
+	6, 7, 8, 9, 10, 11, 12, 13
+};
 // Настройки UART
 #define BAUD_RATE 38400	// скорость порта (бод)
 
@@ -22,7 +26,7 @@ uint8_t addresses[SLAVE_AMOUNT] = {
 #define SHORT_SIG_DUR 250
 
 #define ID				123456	// шестизначное число
-#define POOL_PERIOD 	10000 // Период опроса входов всех слейвов (мс)
+#define POOL_PERIOD 	1000 // Период опроса входов всех слейвов (мс)
 
 
 

@@ -52,6 +52,7 @@ float fvalue;
 uint32_t parsingTimer, send_timer;
 bool startParsing, successful, sig_type;
 bool enableBuzzer = true, isPowerButtonSingle = true;
+bool logicPinStates[8];
 
 iarduino_I2C_connect I2C2;
 
@@ -61,6 +62,10 @@ void setup() {
 	Serial.begin(BAUD_RATE);
 	feedback.setDebounce(10);
 	feedback.setType(LOW_PULL); 
+	
+	for (uint8_t i = 0; i < 8; i++){
+		pinMode(logicPins[i], OUTPUT);
+	}
 }
 
 void loop() {
@@ -83,6 +88,17 @@ void loop() {
 			playLong();			
 		else
 			playDoubleShort();
+	}
+}
+
+void setLogicPinState(String command) {
+	if (command[0] < 'A' || command[0] > 'H')
+		return;
+	
+	logicPinStates[command[0] - 'A'] = command[1] == '1';
+	
+	for (uint8_t i = 0; i < 8; i++) {
+		digitalWrite(logicPins[i], logicPinStates[i]);		
 	}
 }
 

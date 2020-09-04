@@ -1,4 +1,7 @@
 
+String logicPinCommand;
+bool logicPinCommandParsing;
+
 void parsing() {
 	if (Serial.available() > 0) {
 		char incomingByte = Serial.read();
@@ -11,6 +14,7 @@ void parsing() {
 				index++;
 			}
 		}
+		
 		if (incomingByte == '$') {
 			startParsing = true;
 			index = 0;
@@ -34,7 +38,20 @@ void parsing() {
 		
 		if (incomingByte == 'T')
 			isPowerButtonSingle = false;
-	
+		
+		if (incomingByte >= 'A' && incomingByte <= 'H'){
+			logicPinCommandParsing = true;
+			logicPinCommand = "";
+			logicPinCommand += incomingByte;
+			return;
+		}
+		
+		if (logicPinCommandParsing){
+			logicPinCommand += incomingByte;
+			logicPinCommandParsing = false;
+			setLogicPinState(logicPinCommand);
+		}
+			
 	}
 	if (successful) {
 		configure_slave();
