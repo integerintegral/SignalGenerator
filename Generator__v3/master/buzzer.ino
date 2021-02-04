@@ -1,4 +1,3 @@
-
 void playShort() {
 	buzz_timer = millis();
 	sig_type = 1;

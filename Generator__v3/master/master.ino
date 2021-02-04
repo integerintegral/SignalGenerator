@@ -88,10 +88,11 @@ uint8_t getWorkingSlavesCount(){
 
 
 void configure_slave() {
-	I2C2.writeByte(data[SLAVE_NUMBER], RX_FLAG, 1);
-	I2C2.writeByte(data[SLAVE_NUMBER], SLAVE_NUMBER, data[SLAVE_NUMBER]);
 	for (uint8_t j = 2; j <= FRACT_GEN_MODUL; j++)
 		I2C2.writeByte(data[SLAVE_NUMBER], j, data[j]);	
+		
+	I2C2.writeByte(data[SLAVE_NUMBER], SLAVE_NUMBER, data[SLAVE_NUMBER]);	
+	I2C2.writeByte(data[SLAVE_NUMBER], RX_FLAG, 1);
 }
 
 void power() {
