@@ -16,13 +16,11 @@ void impulseGenerator::setFreq(float freq) {
 	_period = (long)1000000 / freq;
 	_duty = 1023 / _period;
 	if (_period > 1023) _duty = 1;
-	//Serial.println(freq);
 }
 
 void impulseGenerator::setModulation(float modul) {
 	if (modul == 0.0) _m_period = 0;
 	else _m_period = lround(500 / modul);
-	//Serial.println(_m_period);
 }
 
 void impulseGenerator::tick() {
@@ -40,7 +38,6 @@ void impulseGenerator::tick() {
 		pinMode(_pin1, INPUT);
 		pinMode(_pin2, INPUT);
 	} 		
-	//digitalWrite(13, _state);
 }
 
 void impulseGenerator::setOuts(uint8_t st) {
@@ -67,13 +64,13 @@ void impulseGenerator::disable() {
 	Timer1.disablePwm(_pin2);
 } 
 
-PWM_1::PWM_1(uint8_t pin1, uint8_t pin2, bool pin1Mode, bool pin2Mode) {
+PWM_1::PWM_1(uint8_t pin1, uint8_t pin2) {
 	_pin1 = pin1;
 	_pin2 = pin2;
-	_pin1_mode = pin1Mode;
-	_pin2_mode = pin2Mode;
 	pinMode(_pin1, OUTPUT);
 	pinMode(_pin2, OUTPUT);
+	Serial.println(pin1);
+	Serial.println(pin2);
 }
 
 void PWM_1::setFreq(uint16_t freq) {
@@ -81,40 +78,40 @@ void PWM_1::setFreq(uint16_t freq) {
 }
 
 void PWM_1::setDuty(uint8_t duty) {
-	_on_p = _period * duty / 255;
+	_on_p = _period * duty / 100;
 	_off_p = _period - _on_p;
 }
 
 void PWM_1::tick() {
-	if (_is_working == 0) {
+	
+	if (!_is_working) {
 		writeLow(_pin1);
 		writeLow(_pin2);
-	} else if (_pin1_mode || _pin2_mode) {
-		return;	
-	} else {		
-		if ((micros() - _timer <= _on_p) && _state) {
-			if (_allow_p1 && _is_working) writeHigh(_pin1);
-			else writeLow(_pin1);
-			if (_allow_p2 && _is_working) writeHigh(_pin2);
-			else writeLow(_pin2);
-			_state = 1;
-		} else if ((micros() - _timer) > _on_p && _state) {
-			_timer = micros();
-			_state = 0;
-		} else if ((micros() - _timer) <= _off_p && !_state) {
-			writeLow(_pin1);
-			writeLow(_pin2);
-			_state = 0;
-		} else if ((micros() - _timer) > _off_p && !_state) {
-			_timer = micros();
-			_state = 1;
-		}
+		return;		
 	}
+	if ((micros() - _timer <= _on_p) && _state) {
+		writeHigh(_pin1);
+		writeHigh(_pin2);
+		_state = 1;
+	} else if ((micros() - _timer) > _on_p && _state) {
+		_timer = micros();
+		_state = 0;
+	} else if ((micros() - _timer) <= _off_p && !_state) {
+		if (_pin1_mode) writeHigh(_pin1);
+		else writeLow(_pin1);
+		if (_pin2_mode) writeHigh(_pin2);
+		else writeLow(_pin2);
+		_state = 0;
+	} else if ((micros() - _timer) > _off_p && !_state) {
+		_timer = micros();
+		_state = 1;		
+	}
+	
 }
 
-void PWM_1::setOuts(uint8_t st) {
-	_allow_p1 = bitRead(st, 0);
-	_allow_p2 = bitRead(st, 1);
+void PWM_1::setOuts(bool pin1Mode, bool pin2Mode) {
+	_pin1_mode = pin1Mode;
+	_pin2_mode = pin2Mode;
 }
 
 void PWM_1::enable() {
@@ -158,7 +155,7 @@ void PWM_2::tick() {
 			_state = 1;
 		} else if ((micros() - _timer) > _on_p && _state) {
 			_timer = micros();
-			_state = 0;
+			_state = 0;		
 		} else if ((micros() - _timer) <= _off_p && !_state) {
 			writeLow(_pin1);
 			writeLow(_pin2);

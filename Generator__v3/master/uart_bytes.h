@@ -2,7 +2,7 @@
 #ifndef UART_BYTES
 #define UART_BYTES
 
-#define STORAGE_SIZE 29
+#define STORAGE_SIZE 30
 
 #define SLAVE_NUMBER			0
 #define RX_FLAG                 1
@@ -37,5 +37,6 @@
 #define IS_WORKING_NOW			26
 #define FRACT_GEN_FREQ        	27
 #define FRACT_GEN_MODUL 		28
+#define IS_SETTING_UP			29
 
 #endif

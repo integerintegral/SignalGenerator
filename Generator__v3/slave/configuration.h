@@ -4,7 +4,7 @@
 
 // СЛЕЙВЫ 1-4
 
-#define MY_ADDRESS 2		// Адрес на шине I2C
+#define MY_ADDRESS 1		// Адрес на шине I2C
 
 // Выходы 
 #define FREQ_OUT1 	9	// Генератор 1.1 (9 либо 10)
@@ -27,16 +27,18 @@
 #define ANALOG_3  	A2 	// Аналоговый вход
 #define ANALOG_4 	A3	// Аналоговый вход
 
-#define PWM1_OUT1_MODE 0	// режим работы выхода №1 ШИМ 1.1 (0 - меандр, 1 - лог. 1)
+#define PWM1_OUT1_MODE 1	// режим работы выхода №1 ШИМ 1.1 (0 - меандр, 1 - лог. 1)
 #define PWM1_OUT2_MODE 0	// режим работы выхода №1 ШИМ 1.2 (0 - меандр, 1 - лог. 1)
-#define PWM1_FREQ 	   1000	// частота ШИМ 1 (гц.)
-#define PWM1_DUTY 	   50	// скважность ШИМ 1 (%)
+#define PWM1_FREQ 	   10	// частота ШИМ 1 (гц.)
+#define PWM1_DUTY 	   10	// скважность ШИМ 1 (0-100)
 
-#define FRONT_POL1	RISING	// RISING - переход сигнала с низкого ЛУ в высокий
+#define FRONT_1	RISING	// RISING - переход сигнала с низкого ЛУ в высокий
 							// FALLING - переход сигнала с высокого ЛУ в низкий
 							// CHANGE  - при любом изменении сигнала
 
-#define FRONT_POL2	RISING	// RISING - переход сигнала с низкого ЛУ в высокий
+#define FRONT_2	RISING	// RISING - переход сигнала с низкого ЛУ в высокий
 							// FALLING - переход сигнала с высокого ЛУ в низкий
 							// CHANGE  - при любом изменении сигнала
+							
+#define DEBUG_INFO 1
 #endif

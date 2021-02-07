@@ -1,51 +1,66 @@
+uint8_t buzzStep;
+uint32_t buzz_timer;
+bool buzzLong, buzzShort, buzzDoubleShort; 
+
+void buzzerTick(){
+	if (buzzShort) buzzShortTick();
+	if (buzzDoubleShort) buzzDoubleShortTick();
+	if (buzzLong) buzzLongTick();
+}
 
 void playShort() {
 	buzz_timer = millis();
-	sig_type = 1;
-	allow_play = true;
+	buzzShort = true;
 }
 
-void playLong() {
+void playLong() {	
 	buzz_timer = millis();
-	sig_type = 2;
-	allow_play = true;
+	buzzLong = true;
 }
 
 void playDoubleShort() {
 	buzz_timer = millis();
-	sig_type = 0;
-	allow_play = true;
+	buzzDoubleShort = true;
 }
 
-void buzzTick() {
-	if (allow_play && enableBuzzer) {
-		if (sig_type == 0) {
-			if (buzz_steps == 0 || buzz_steps == 2) digitalWrite(BUZZ_PIN, HIGH);
-			else digitalWrite(BUZZ_PIN, LOW);
-			// переключение шагов
-			if (millis() - buzz_timer >= SHORT_SIG_DUR) {
-				buzz_steps++;
-				if (buzz_steps > 2) {
-					allow_play = 0;
-					buzz_steps = 0;
-					digitalWrite(BUZZ_PIN, LOW);
-				}
-				buzz_timer = millis();
+void buzzShortTick() {
+	if (enableBuzzer && buzzShort) {
+		if (millis() - buzz_timer >= SHORT_SIG_DUR){
+			digitalWrite(BUZZ_PIN, LOW);
+			buzzShort = false;
+		} 
+		else
+			digitalWrite(BUZZ_PIN, HIGH);
+	} else 
+		digitalWrite(BUZZ_PIN, LOW);
+}
+
+void buzzDoubleShortTick() {
+	if (enableBuzzer && buzzDoubleShort) {
+		if (buzz_steps == 0 || buzz_steps == 2)
+			digitalWrite(BUZZ_PIN, HIGH);
+		else
+			digitalWrite(BUZZ_PIN, LOW);
+		if (millis() - buzz_timer >= SHORT_SIG_DUR) {
+			buzz_steps++;
+			if (buzz_steps > 2) {
+				buzz_steps = 0;
+				buzzDoubleShort = false;
+				digitalWrite(BUZZ_PIN, LOW);
 			}
-		} else if (sig_type == 1) {
-			if (millis() - buzz_timer >= SHORT_SIG_DUR){
-				digitalWrite(BUZZ_PIN, LOW);
-				allow_play = 0;
-				buzz_steps = 0;
-			} 
-			else digitalWrite(BUZZ_PIN, HIGH);
-		} else {
-			if (millis() - buzz_timer >= LONG_SIG_DUR){
-				digitalWrite(BUZZ_PIN, LOW);
-				allow_play = 0;
-				buzz_steps = 0;
-			} 
-			else digitalWrite(BUZZ_PIN, HIGH);
+			buzz_timer = millis();
 		}
 	}
+}
+
+void buzzLongTick() {
+	if (enableBuzzer && buzzLong) {
+		if (millis() - buzz_timer >= LONG_SIG_DUR){
+			digitalWrite(BUZZ_PIN, LOW);
+			buzzLong = false;
+		} 
+		else 
+			digitalWrite(BUZZ_PIN, HIGH);
+	} else 
+		digitalWrite(BUZZ_PIN, LOW);
 }
